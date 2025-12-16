@@ -50,7 +50,7 @@ async def broadcast_user_count():
     await broadcast(message)
 
 # WebSocket bağlantı işleyicisi
-async def handle_client(websocket, path):
+async def handle_client(websocket):
     global user_id_counter
     
     # Yeni kullanıcıya ID ve renk ata
@@ -128,27 +128,29 @@ async def handle_client(websocket, path):
                 print(f"❌ Mesaj işleme hatası: {e}")
                 
     except websockets.exceptions.ConnectionClosed:
-        print(f"🔌 Bağlantı kapandı: {connected_clients[websocket]['username']}")
+        if websocket in connected_clients:
+             print(f"🔌 Bağlantı kapandı: {connected_clients[websocket]['username']}")
     except Exception as e:
         print(f"❌ Bağlantı hatası: {e}")
     finally:
         # Kullanıcı ayrıldı
-        user_info = connected_clients[websocket]
-        
-        leave_message = {
-            'type': 'system',
-            'message': f'{user_info["username"]} sohbetten ayrıldı',
-            'timestamp': get_timestamp()
-        }
-        
-        # Kullanıcıyı listeden çıkar
-        del connected_clients[websocket]
-        
-        # Diğerlerine bildir
-        await broadcast(leave_message)
-        await broadcast_user_count()
-        
-        print(f"👋 {user_info['username']} ayrıldı")
+        if websocket in connected_clients:
+            user_info = connected_clients[websocket]
+            
+            leave_message = {
+                'type': 'system',
+                'message': f'{user_info["username"]} sohbetten ayrıldı',
+                'timestamp': get_timestamp()
+            }
+            
+            # Kullanıcıyı listeden çıkar
+            del connected_clients[websocket]
+            
+            # Diğerlerine bildir
+            await broadcast(leave_message)
+            await broadcast_user_count()
+            
+            print(f"👋 {user_info['username']} ayrıldı")
 
 # HTTP sunucusu için handler
 class MyHTTPRequestHandler(SimpleHTTPRequestHandler):
