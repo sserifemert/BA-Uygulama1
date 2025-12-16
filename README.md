@@ -1,1 +1,0 @@
-# BA-Uygulama1
