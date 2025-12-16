@@ -1,241 +1,214 @@
 <!DOCTYPE html>
 <html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python WebSocket Sohbet</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <header>
-            <h1>🐍 Python WebSocket Sohbet Odası</h1>
-            <div class="header-info">
-                <span class="connection-status" id="status">Bağlanıyor...</span>
-                <span class="user-count">Online: <span id="userCount">0</span></span>
-            </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sanal Kütüphane | Etüt Odası</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="library-layout">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <h3>📜 Ziyaretçi Defteri</h3>
+          <div class="online-status">
+            <span class="indicator"></span>
+            <span id="userCount">0</span> Öğrenci Çalışıyor
+          </div>
+        </div>
+
+        <div class="user-controls">
+          <label>Takma Adınız</label>
+          <div class="input-group">
+            <input
+              type="text"
+              id="usernameInput"
+              placeholder="İsim giriniz..."
+              autocomplete="off"
+            />
+            <button id="setUsernameBtn">Yenile</button>
+          </div>
+        </div>
+
+        <div class="library-rules">
+          <h4>Kütüphane Kuralları</h4>
+          <ul>
+            <li>Lütfen sessiz olunuz.</li>
+            <li>Sadece bilgi paylaşımı yapınız.</li>
+            <li>Kitapları (chat) temiz tutunuz.</li>
+          </ul>
+        </div>
+
+        <div class="connection-info">
+          Durum: <span id="status">Bağlanıyor...</span>
+        </div>
+      </aside>
+
+      <main class="reading-room">
+        <header class="room-header">
+          <h1>Sessiz Okuma Salonu</h1>
+          <p>Arkanızdaki raflarda binlerce fikir var.</p>
         </header>
 
-        <div class="username-section">
-            <input type="text" id="usernameInput" placeholder="Kullanıcı adınızı girin..." maxlength="20">
-            <button id="setUsernameBtn">Adı Değiştir</button>
+        <div class="chat-desk" id="messages">
+          <div class="notice-board">
+            <h2>Hoş Geldiniz</h2>
+            <p>Sessiz kütüphane ortamına giriş yaptınız.</p>
+          </div>
         </div>
 
-        <div class="chat-container">
-            <div class="messages" id="messages">
-                <div class="welcome-message">
-                    <h2>Hoş Geldiniz! 👋</h2>
-                    <p>Python + WebSocket ile gerçek zamanlı sohbet uygulaması.</p>
-                    <p>Mesaj yazmaya başlayın!</p>
-                </div>
-            </div>
+        <div class="writing-desk">
+          <input
+            type="text"
+            id="messageInput"
+            placeholder="Bir not bırakın..."
+            autocomplete="off"
+          />
+          <button id="sendBtn">Fısılda ✒️</button>
         </div>
-
-        <div class="input-section">
-            <input 
-                type="text" 
-                id="messageInput" 
-                placeholder="Mesajınızı yazın..." 
-                maxlength="500"
-                autocomplete="off"
-            >
-            <button id="sendBtn">Gönder</button>
-        </div>
+      </main>
     </div>
 
     <script>
-        // WebSocket bağlantısı (Python sunucusu 8765 portunda)
-        let ws;
-        let userId;
-        let userColor;
-        let username = '';
+      // Senin server.py dosyanla uyumlu çalışan JS kodları
+      let ws;
+      let userId;
+      let username = "";
 
-        // DOM elementleri
-        const messagesDiv = document.getElementById('messages');
-        const messageInput = document.getElementById('messageInput');
-        const sendBtn = document.getElementById('sendBtn');
-        const statusSpan = document.getElementById('status');
-        const userCountSpan = document.getElementById('userCount');
-        const usernameInput = document.getElementById('usernameInput');
-        const setUsernameBtn = document.getElementById('setUsernameBtn');
+      const messagesDiv = document.getElementById("messages");
+      const messageInput = document.getElementById("messageInput");
+      const sendBtn = document.getElementById("sendBtn");
+      const statusSpan = document.getElementById("status");
+      const userCountSpan = document.getElementById("userCount");
+      const usernameInput = document.getElementById("usernameInput");
+      const setUsernameBtn = document.getElementById("setUsernameBtn");
 
-        // WebSocket bağlantısını başlat
-        function connect() {
-            // Python WebSocket sunucusuna bağlan (port 8765)
-            ws = new WebSocket('ws://' + window.location.hostname + ':8765');
+      function connect() {
+        // Port 8765 server.py'de tanımlı
+        ws = new WebSocket("ws://" + window.location.hostname + ":8765");
 
-            ws.onopen = () => {
-                console.log('✅ WebSocket bağlantısı kuruldu');
-                updateStatus('connected', 'Bağlandı ✓');
-                messageInput.disabled = false;
-                sendBtn.disabled = false;
-            };
+        ws.onopen = () => {
+          updateStatus("connected", "Bağlı");
+          messageInput.disabled = false;
+          sendBtn.disabled = false;
+        };
 
-            ws.onmessage = (event) => {
-                try {
-                    const data = JSON.parse(event.data);
-                    handleMessage(data);
-                } catch (error) {
-                    console.error('❌ Mesaj ayrıştırma hatası:', error);
-                }
-            };
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            handleMessage(data);
+          } catch (error) {
+            console.error(error);
+          }
+        };
 
-            ws.onclose = () => {
-                console.log('🔌 WebSocket bağlantısı kapandı');
-                updateStatus('disconnected', 'Bağlantı Kesildi ✗');
-                messageInput.disabled = true;
-                sendBtn.disabled = true;
-                
-                // 3 saniye sonra yeniden bağlan
-                setTimeout(() => {
-                    console.log('🔄 Yeniden bağlanılıyor...');
-                    updateStatus('connecting', 'Bağlanıyor...');
-                    connect();
-                }, 3000);
-            };
+        ws.onclose = () => {
+          updateStatus("disconnected", "Koptu");
+          setTimeout(connect, 3000);
+        };
+      }
 
-            ws.onerror = (error) => {
-                console.error('❌ WebSocket hatası:', error);
-                updateStatus('disconnected', 'Hata ✗');
-            };
+      function handleMessage(data) {
+        switch (data.type) {
+          case "welcome":
+            userId = data.userId;
+            username = `Öğrenci ${userId}`;
+            usernameInput.value = username;
+            addSystemMessage("Kütüphaneye giriş yaptınız.");
+            break;
+          case "chat":
+            addChatMessage(data);
+            break;
+          case "system":
+            addSystemMessage(data.message);
+            break;
+          case "usercount":
+            userCountSpan.textContent = data.count;
+            break;
+        }
+      }
+
+      function addChatMessage(data) {
+        const rowDiv = document.createElement("div");
+        // Mesajın bizden mi başkasından mı geldiğini kontrol et
+        const isOwn = data.userId === userId;
+        rowDiv.className = `message-row ${isOwn ? "own-row" : "other-row"}`;
+
+        const cardDiv = document.createElement("div");
+        cardDiv.className = "message-card";
+
+        if (!isOwn) {
+          const nameDiv = document.createElement("div");
+          nameDiv.className = "sender-name";
+          nameDiv.textContent = data.username;
+          nameDiv.style.color = data.color; // Serverdan gelen rengi kullan
+          cardDiv.appendChild(nameDiv);
         }
 
-        // Mesaj işleme
-        function handleMessage(data) {
-            switch (data.type) {
-                case 'welcome':
-                    userId = data.userId;
-                    userColor = data.color;
-                    username = `Kullanıcı${userId}`;
-                    usernameInput.value = username;
-                    addSystemMessage(data.message);
-                    break;
-                    
-                case 'chat':
-                    addChatMessage(data);
-                    break;
-                    
-                case 'system':
-                    addSystemMessage(data.message);
-                    break;
-                    
-                case 'usercount':
-                    userCountSpan.textContent = data.count;
-                    break;
-            }
+        const textP = document.createElement("p");
+        textP.textContent = data.message;
+
+        const timeSpan = document.createElement("span");
+        timeSpan.className = "timestamp";
+        timeSpan.textContent = data.timestamp;
+
+        cardDiv.appendChild(textP);
+        cardDiv.appendChild(timeSpan);
+        rowDiv.appendChild(cardDiv);
+
+        // İlk açılış mesajını temizle
+        const notice = messagesDiv.querySelector(".notice-board");
+        if (notice) notice.remove();
+
+        messagesDiv.appendChild(rowDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      function addSystemMessage(msg) {
+        const div = document.createElement("div");
+        div.className = "system-log";
+        div.textContent = `[Sistem] ${msg}`;
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      function sendMessage() {
+        const txt = messageInput.value.trim();
+        if (txt && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "chat", message: txt }));
+          messageInput.value = "";
+          messageInput.focus();
         }
+      }
 
-        // Sohbet mesajı ekle
-        function addChatMessage(data) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${data.userId === userId ? 'own' : 'other'}`;
-            
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            
-            if (data.userId !== userId) {
-                const usernameSpan = document.createElement('div');
-                usernameSpan.className = 'message-username';
-                usernameSpan.textContent = data.username;
-                usernameSpan.style.color = data.color;
-                contentDiv.appendChild(usernameSpan);
-            }
-            
-            const textDiv = document.createElement('div');
-            textDiv.className = 'message-text';
-            textDiv.textContent = data.message;
-            contentDiv.appendChild(textDiv);
-            
-            const timeDiv = document.createElement('div');
-            timeDiv.className = 'message-time';
-            timeDiv.textContent = data.timestamp;
-            contentDiv.appendChild(timeDiv);
-            
-            messageDiv.appendChild(contentDiv);
-            
-            // Hoş geldin mesajını kaldır
-            const welcomeMsg = messagesDiv.querySelector('.welcome-message');
-            if (welcomeMsg) {
-                welcomeMsg.remove();
-            }
-            
-            messagesDiv.appendChild(messageDiv);
-            scrollToBottom();
+      function setUsername() {
+        const newName = usernameInput.value.trim();
+        if (
+          newName &&
+          newName !== username &&
+          ws.readyState === WebSocket.OPEN
+        ) {
+          username = newName;
+          ws.send(JSON.stringify({ type: "username", username: newName }));
         }
+      }
 
-        // Sistem mesajı ekle
-        function addSystemMessage(message) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = 'system-message';
-            messageDiv.textContent = message;
-            
-            const welcomeMsg = messagesDiv.querySelector('.welcome-message');
-            if (welcomeMsg) {
-                welcomeMsg.remove();
-            }
-            
-            messagesDiv.appendChild(messageDiv);
-            scrollToBottom();
-        }
+      function updateStatus(cls, txt) {
+        statusSpan.textContent = txt;
+        statusSpan.className = cls;
+      }
 
-        // Mesaj gönder
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            
-            if (message && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                    type: 'chat',
-                    message: message
-                }));
-                
-                messageInput.value = '';
-                messageInput.focus();
-            }
-        }
+      sendBtn.addEventListener("click", sendMessage);
+      messageInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") sendMessage();
+      });
+      setUsernameBtn.addEventListener("click", setUsername);
 
-        // Kullanıcı adını değiştir
-        function setUsername() {
-            const newUsername = usernameInput.value.trim();
-            
-            if (newUsername && newUsername !== username && ws.readyState === WebSocket.OPEN) {
-                username = newUsername;
-                ws.send(JSON.stringify({
-                    type: 'username',
-                    username: newUsername
-                }));
-            }
-        }
-
-        // Bağlantı durumunu güncelle
-        function updateStatus(status, text) {
-            statusSpan.textContent = text;
-            statusSpan.className = `connection-status ${status}`;
-        }
-
-        // En alta kaydır
-        function scrollToBottom() {
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
-        }
-
-        // Event listeners
-        sendBtn.addEventListener('click', sendMessage);
-
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-
-        setUsernameBtn.addEventListener('click', setUsername);
-
-        usernameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                setUsername();
-            }
-        });
-
-        // Sayfa yüklendiğinde bağlan
-        connect();
+      connect();
     </script>
-</body>
+  </body>
 </html>
