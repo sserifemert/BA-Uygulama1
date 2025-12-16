@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Sohbet Uygulaması</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💬 WebSocket Sohbet Odası</h1>
+            <div class="header-info">
+                <span class="connection-status" id="status">Bağlanıyor...</span>
+                <span class="user-count">Online: <span id="userCount">0</span></span>
+            </div>
+        </header>
+
+        <div class="username-section">
+            <input type="text" id="usernameInput" placeholder="Kullanıcı adınızı girin..." maxlength="20">
+            <button id="setUsernameBtn">Adı Değiştir</button>
+        </div>
+
+        <div class="chat-container">
+            <div class="messages" id="messages">
+                <div class="welcome-message">
+                    <h2>Hoş Geldiniz! 👋</h2>
+                    <p>WebSocket tabanlı gerçek zamanlı sohbet uygulamasına hoş geldiniz.</p>
+                    <p>Mesaj yazmaya başlayın!</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <input 
+                type="text" 
+                id="messageInput" 
+                placeholder="Mesajınızı yazın..." 
+                maxlength="500"
+                autocomplete="off"
+            >
+            <button id="sendBtn">Gönder</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
